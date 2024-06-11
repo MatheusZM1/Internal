@@ -49,6 +49,23 @@ def get_all_information():
         time.sleep(0.1)
     print("") #Create space for formatting
 
+def get_random_dinosaur_information():
+    # Execute an SQL statement and save the result to a variable
+    cursor.execute("SELECT * FROM DinosaursData;")
+    data = cursor.fetchall()
+
+    os.system("cls")
+    print("Name\t\t\tPeriod\t\t\tYear Discov.\tDiet\t\t\tAvg. Height(m)\tAvg. Weight(kg)\n")
+    
+    #Generate random index value
+    random_index = random.randint(1, len(data) - 1)
+    row = data[random_index]
+    if len(row[1]) > 15: #Formatting fix for long names
+        print(f"{row[1]}\t{row[2]}\t\t{row[3]}\t\t{row[4]}\t\t{row[5]}\t\t{row[6]}")
+    else:
+        print(f"{row[1]}\t\t{row[2]}\t\t{row[3]}\t\t{row[4]}\t\t{row[5]}\t\t{row[6]}")
+    print("") #Create space for formatting
+
 def create_query():
     #Begin advanced query creation
     os.system("cls")
@@ -523,6 +540,55 @@ def create_query():
         else:
             if not filtering_phase_finished: #Invalid option message unless the filtering phase was skipped
                 invalid_option_response()
+    os.system("cls")
+    #Begin ordering phase of query creation
+    ordering_phase_start_finished = False
+    ordering_phase_end_finished = False
+    while not ordering_phase_start_finished:
+        while True:
+            user_input = input("What column would you like to order the data by?\n1 - Name\n2 - Period\n3 - Year Discov.\n4 - Diet\n5 - Avg. Height\n6 - Avg.Weight\n7 - None\n8 - Cancel\n\n>")
+            if user_input == "1":
+                query += " ORDER BY Name"
+                break
+            elif user_input == "2":
+                query += " ORDER BY Period"
+                break
+            elif user_input == "3":
+                query += " ORDER BY YearDiscovered"
+                break
+            elif user_input == "4":
+                query += " ORDER BY Diet"
+                break
+            elif user_input == "5":
+                query += " ORDER BY AvgHeight"
+                break
+            elif user_input == "6":
+                query += " ORDER BY AvgWeight"
+                break
+            elif user_input == "7":
+                ordering_phase_end_finished = True
+                break
+            elif user_input == "8": #Operation cancelled
+                os.system("cls")
+                return
+            else:
+                invalid_option_response()
+        ordering_phase_start_finished = True
+    os.system("cls")
+    while not ordering_phase_end_finished:
+        while True:
+            user_input = input("How would you like to order the chosen column?\n1 - Ascennding\n2 - Descending\n3 - Cancel\n\n>")
+            if user_input == "1":
+                break
+            elif user_input == "2":
+                query += " DESC"
+                break
+            elif user_input == "3":
+                os.system("cls")
+                return
+            else:
+                invalid_option_response()
+        ordering_phase_end_finished = True            
 
     # Execute an SQL statement and save the result to a variable
     os.system("cls")
@@ -583,7 +649,7 @@ def create_query():
 while True:
     print("Dinosaurs Database:")
     #Prompt the user for input
-    user_input = input("\n1 - Get all dinosaur names\n2 - Get all information\n3 - Create advanced query\n4 - Exit\n\n>").strip()
+    user_input = input("\n1 - Get all dinosaur names\n2 - Get all information\n3 - Create advanced query\n4 - Get a random dinosaur's information\n5 - Exit\n\n>").strip()
 
     if user_input == "1":
         get_all_dinosaur_names()
@@ -592,6 +658,8 @@ while True:
     elif user_input == "3":
         create_query()
     elif user_input == "4":
+        get_random_dinosaur_information()
+    elif user_input == "5":
         os.system("cls")
         print("Program has stopped")
         break
