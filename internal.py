@@ -18,20 +18,22 @@ def invalid_number_response():
     time.sleep(2)
     os.system("cls")
 
+#This function retrieves all the dinosaur names alongside their unique ID index
 def get_all_dinosaur_names():
     # Execute an SQL statement and save the result to a variable
-    cursor.execute("SELECT Name FROM DinosaursData;")
+    cursor.execute("SELECT DinosaurID, Name FROM DinosaursData;")
     names = cursor.fetchall()
 
     os.system("cls")
-    print("All dinosaur names:\n")
+    print("All dinosaur names and their ID:\n")
     
     #Loop for each name retrieved
     for name in names:
-        print(f"{name[0]}")
+        print(f"{name[0]} - {name[1]}")
         time.sleep(0.1)
     print("") #Create space for formatting
 
+#This function retrives all the rows
 def get_all_information():
     # Execute an SQL statement and save the result to a variable
     cursor.execute("SELECT * FROM DinosaursData;")
@@ -49,6 +51,7 @@ def get_all_information():
         time.sleep(0.1)
     print("") #Create space for formatting
 
+#This function user lets the user retrieve information ofa random dinosaur (a random row)
 def get_random_dinosaur_information():
     # Execute an SQL statement and save the result to a variable
     cursor.execute("SELECT * FROM DinosaursData;")
@@ -57,8 +60,9 @@ def get_random_dinosaur_information():
     os.system("cls")
     print("Name\t\t\tPeriod\t\t\tYear Discov.\tDiet\t\t\tAvg. Height(m)\tAvg. Weight(kg)\n")
     
-    #Generate random index value
+    #Generate random index value based on how many rows there are
     random_index = random.randint(1, len(data) - 1)
+    #Use random index value to choose a row
     row = data[random_index]
     if len(row[1]) > 15: #Formatting fix for long names
         print(f"{row[1]}\t{row[2]}\t\t{row[3]}\t\t{row[4]}\t\t{row[5]}\t\t{row[6]}")
@@ -66,6 +70,11 @@ def get_random_dinosaur_information():
         print(f"{row[1]}\t\t{row[2]}\t\t{row[3]}\t\t{row[4]}\t\t{row[5]}\t\t{row[6]}")
     print("") #Create space for formatting
 
+#This function is used to let the user create a custom query in a controller environment
+#It works by declaring a variable named query, which by the end of the function, will contain an SQL command to be executed
+#Throughout the function, the user is asked several question regarding what columns they want to retrieve, filter, and order by
+#Numerous independent strings are concatenated with the query variable based on the criteria the user has inputted
+#This method prevents SQL injection, and acts as a powerful tool that allows for many different SQL commands to be executed by the user
 def create_query():
     #Begin advanced query creation
     os.system("cls")
@@ -644,12 +653,264 @@ def create_query():
     #Inform user of their query
     print("\nYour query was: " + query + "\n")
 
+def get_statistics_column():
+    #Begin column choosing phase
+    os.system("cls")
+    #Declare variables for each numerical column
+    selecting_year = False
+    selecting_height = False
+    selecting_weight = False
+    while True:
+        user_input = input("What numerical column would like to get statistics on?\n1 - Year Discov.\n2 - Avg. Height(m)\n3 - Avg. Weight(kg)\n4 - Cancel\n\n>")
+        if user_input == "1":
+            selecting_year = True
+            break
+        elif user_input == "2":
+            selecting_height = True
+            break
+        elif user_input == "3":
+            selecting_weight = True
+            break
+        elif user_input == "4": #Operation cancelled
+            os.system("cls")
+            return
+        else:
+            invalid_option_response()
+    os.system("cls")
+    #Begin statistic choosing phase
+    while True:
+        user_input = input("What statistics would you like to get?\n1 - Average\n2 - Sum\n3 - Range\n4 - All\n5 - Cancel\nFormat your response with a space between each value\n\n>")
+        words = user_input.split()
+        #Declare variables for each
+        selecting_average = False
+        selecting_sum = False
+        selecting_range = False
+        for i in range(len(words)):
+            if words[i] == "1":
+                selecting_average = True
+            elif words[i] == "2":
+                selecting_sum = True
+            elif words[i] == "3":
+                selecting_range = True
+            elif words[i] == "4":
+                selecting_average = True
+                selecting_sum = True
+                selecting_range = True
+            elif words[i] == "5": #Operation cancelled
+                os.system("cls")
+                return
+        if selecting_average or selecting_sum or selecting_range:
+            break
+        else:
+            invalid_option_response()
+    os.system("cls")
+    #Print to the user the column which was chosen
+    if selecting_year:
+        print("Column selected: Year Discov.\n")
+    elif selecting_height:
+        print("Column selected: Avg. Height\n")
+    else:
+        print("Column selected: Avg. Weight\n")
+    #Execute SQL statements based on criteria chosen by the user, save the results to a variable, and print results
+    if selecting_average:
+        if selecting_year:
+            cursor.execute("SELECT AVG(YearDiscovered) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Average: " + str(round(result[0][0], 2)))
+        elif selecting_height:
+            cursor.execute("SELECT AVG(AvgHeight) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Average: " + str(round(result[0][0], 2)) + "m")
+        else:
+            cursor.execute("SELECT AVG(AvgWeight) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Average: " + str(round(result[0][0], 2)) + "kg")
+    if selecting_sum:
+        if selecting_year:
+            cursor.execute("SELECT SUM(YearDiscovered) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Sum: " + str(result[0][0]))
+        elif selecting_height:
+            cursor.execute("SELECT SUM(AvgHeight) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Sum: " + str(result[0][0]) + "m")
+        else:
+            cursor.execute("SELECT SUM(AvgWeight) FROM DinosaursData;")
+            result = cursor.fetchall()
+            print("Sum: " + str(result[0][0]) + "kg")
+    if selecting_range:
+        if selecting_year:
+            cursor.execute("SELECT MIN(YearDiscovered) FROM DinosaursData;")
+            result_min = cursor.fetchall()
+            cursor.execute("SELECT MAX(YearDiscovered) FROM DinosaursData;")
+            result_max = cursor.fetchall()
+            print("Range: " + str(result_max[0][0] - result_min[0][0]) + " (" + str(result_max[0][0]) + " - " + str(result_min[0][0]) + ")")
+        elif selecting_height:
+            cursor.execute("SELECT MIN(AvgHeight) FROM DinosaursData;")
+            result_min = cursor.fetchall()
+            cursor.execute("SELECT MAX(AvgHeight) FROM DinosaursData;")
+            result_max = cursor.fetchall()
+            print("Range: " + str(result_max[0][0] - result_min[0][0]) + "m (" + str(result_max[0][0]) + "m - " + str(result_min[0][0]) + "m)")
+        else:
+            cursor.execute("SELECT MIN(AvgWeight) FROM DinosaursData;")
+            result_min = cursor.fetchall()
+            cursor.execute("SELECT MAX(AvgWeight) FROM DinosaursData;")
+            result_max = cursor.fetchall()
+            print("Range: " + str(result_max[0][0] - result_min[0][0]) + "kg (" + str(result_max[0][0]) + "kg - " + str(result_min[0][0]) + "kg)")
+    print("") #Create space for formatting
+
+#This function is used to let the user insert their very own custom dinosaur (row) into the the database (through a controlled environment)
+#Several if statements are used to perform checks which restrict the fields of each column. This is done to allow for proper formatting whn data is retrieved
+#The user is prompted for the field of each column until they are all equal to an acceptable value
+#The new dinosaur is then inserted into the database
+#The ID index must be a unique positive integer greater than zero. Its value does not matter otherwise
+def insert_custom_dinosaur():
+    os.system("cls")
+    #Declare variables for the new dinosaur
+    new_dinosaur_id = 0
+    new_dinosaur_name = "None"
+    new_dinosaur_period = "None"
+    new_dinosaur_year = 0
+    new_dinosaur_diet = "None"
+    new_dinosaur_height = 0
+    new_dinosaur_weight = 0
+    while True:
+        if new_dinosaur_id == 0: #Ask for ID
+            try:
+                new_dinosaur_id = int(input("Enter the ID of your dinosaur (Must be an integer greater than zero):\n\n>"))
+                if new_dinosaur_id <= 0:
+                    os.system("cls")
+                    print("ID must be greater than zero\nTry again")
+                    time.sleep(2)
+                    os.system("cls")
+                    new_dinosaur_id = 0
+                else:
+                    #Execute SQL query to check if ID index is free
+                    cursor.execute("SELECT DinosaurID FROM DinosaursData WHERE DinosaurID = " + str(new_dinosaur_id) + ";")
+                    data = cursor.fetchall()
+                    if len(data) > 0: #Check if dinosaur ID exists before deletion
+                        os.system("cls")
+                        print("This ID is already taken\nTry again")
+                        time.sleep(2)
+                        new_dinosaur_id = 0
+                    os.system("cls")
+            except ValueError:
+                invalid_number_response()
+        elif new_dinosaur_name == "None": #Ask for name
+            new_dinosaur_name = input("Enter the name of your dinosaur (Min char. of 3) (Max char. of 20):\n\n>").strip()
+            if len(new_dinosaur_name) < 3:
+                os.system("cls")
+                print("Name too short\nTry again")
+                time.sleep(3)
+                new_dinosaur_name = "None"
+            elif len(new_dinosaur_name) < 8: #Increase name length with whitespace for formatting
+                new_dinosaur_name += "      "
+            if len(new_dinosaur_name) > 20:
+                os.system("cls")
+                print("Name exceeds character limit\nTry again")
+                time.sleep(3)
+                new_dinosaur_name = "None"
+            os.system("cls")
+        elif new_dinosaur_period == "None": #Ask for period
+            user_input = input("What period is your dinosaur from?\n\n1 - Triassic\n2 - Jurassic\n3 - Cretaceous\n\n>")
+            if user_input == "1":
+                new_dinosaur_period = "Triassic"
+            elif user_input == "2":
+                new_dinosaur_period = "Jurassic"
+            elif user_input == "3":
+                new_dinosaur_period = "Cretaceous"
+            else:
+                invalid_option_response()
+            os.system("cls")
+        elif new_dinosaur_year == 0: #Ask for year
+            try:
+                new_dinosaur_year = int(input("Enter the year discovered of your dinosaur (Year must be 4 digits long):\n\n>"))
+                if len(str(new_dinosaur_year)) != 4:
+                    os.system("cls")
+                    print("Year must be 4 digits long\nTry again")
+                    time.sleep(3)
+                    new_dinosaur_year = 0
+                os.system("cls")
+            except ValueError:
+                invalid_number_response()
+        elif new_dinosaur_diet == "None": #Ask for diet
+            user_input = input("What diet does your dinosaur have?\n\n1 - Carnivore\n2 - Herbivore\n3 - Omnivore\n4 - Piscivore\n\n>")
+            if user_input == "1":
+                new_dinosaur_diet = "Carnivore"
+            elif user_input == "2":
+                new_dinosaur_diet = "Herbivore"
+            elif user_input == "3":
+                new_dinosaur_diet = "Omnivore"
+            elif user_input == "4":
+                new_dinosaur_diet = "Piscivore"
+            else:
+                invalid_option_response()
+            os.system("cls")
+        elif new_dinosaur_height == 0: #Ask for height
+            try:
+                new_dinosaur_height = int(input("Enter the height(m) of your dinosaur (Max. 100):\n\n>"))
+                if new_dinosaur_height <= 0 or new_dinosaur_height > 100:
+                    os.system("cls")
+                    print("Height must be greater than zero and no bigger than 100\nTry again")
+                    time.sleep(4)
+                    os.system("cls")
+                    new_dinosaur_height = 0
+                else:
+                    os.system("cls")
+            except ValueError:
+                invalid_number_response()
+        elif new_dinosaur_weight == 0: #Ask for weight
+            try:
+                new_dinosaur_weight = int(input("Enter the weight(kg) of your dinosaur (Max. 100000):\n\n>"))
+                if new_dinosaur_weight <= 0 or new_dinosaur_weight > 100000:
+                    os.system("cls")
+                    print("Weight must be greater than zero and no bigger than 100000\nTry again")
+                    time.sleep(4)
+                    os.system("cls")
+                    new_dinosaur_weight = 0
+                else:
+                    os.system("cls")
+            except ValueError:
+                invalid_number_response()
+        else: #All fields filled
+            #Prevent SQL injection by using parameterized queries
+            query = "INSERT INTO DinosaursData (DinosaurID, Name, Period, YearDiscovered, Diet, AvgHeight, AvgWeight) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            cursor.execute(query, (new_dinosaur_id, new_dinosaur_name, new_dinosaur_period, new_dinosaur_year, new_dinosaur_diet, new_dinosaur_height, new_dinosaur_weight))
+            conn.commit()
+            os.system("cls")
+            print("Dinosaur successfully inserted")
+            time.sleep(3.5)
+            os.system("cls")
+            break
+
+#This function lets the user delete a dinosaur (row) from the database
+def delete_dinosaur():
+    while True:
+        try:
+            get_all_dinosaur_names()
+            #Execute SQL statement based on the ID index and save the results to a variable (no results means invalid ID)
+            user_input = int(input("Input the ID number of the dinosaur you would like to delete\n\n>"))
+            cursor.execute("SELECT DinosaurID FROM DinosaursData WHERE DinosaurID = " + str(user_input) + ";")
+            data = cursor.fetchall()
+            if len(data) > 0: #Check if dinosaur ID exists before deletion
+                cursor.execute("DELETE FROM DinosaursData WHERE DinosaurID = " + str(data[0][0]))
+                conn.commit()
+                os.system("cls")
+                print("Dinosaur successfully deleted\n\nIts ID index is now free")
+                time.sleep(3.5)
+                os.system("cls")
+                break
+            else:
+                invalid_option_response()
+        except ValueError:
+            invalid_number_response()
+
 
 #Main Loop
 while True:
     print("Dinosaurs Database:")
     #Prompt the user for input
-    user_input = input("\n1 - Get all dinosaur names\n2 - Get all information\n3 - Create advanced query\n4 - Get a random dinosaur's information\n5 - Exit\n\n>").strip()
+    user_input = input("\n1 - Get all dinosaur names (Incl. ID)\n2 - Get all information\n3 - Create advanced query\n4 - Get statistics of a numerical column\n5 - Get a random dinosaur's information\n6 - Insert a custom dinosaur\n7 - Delete a dinosaur\n8 - Exit\n\n>").strip()
 
     if user_input == "1":
         get_all_dinosaur_names()
@@ -658,8 +919,14 @@ while True:
     elif user_input == "3":
         create_query()
     elif user_input == "4":
-        get_random_dinosaur_information()
+        get_statistics_column()
     elif user_input == "5":
+        get_random_dinosaur_information()
+    elif user_input == "6":
+        insert_custom_dinosaur()
+    elif user_input == "7":
+        delete_dinosaur()
+    elif user_input == "8":
         os.system("cls")
         print("Program has stopped")
         break
